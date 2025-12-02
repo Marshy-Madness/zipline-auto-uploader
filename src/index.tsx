@@ -196,7 +196,7 @@ function ZiplineSettingsPage() {
   );
 }
 
-/* Am I working now test? */
+/* Am I working now? */
 
 export default definePlugin(() => ({
   name: "Zipline Uploader",
