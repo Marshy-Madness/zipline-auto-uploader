@@ -4,10 +4,8 @@ on:
   push:
     branches: [ main ]
     paths:
-      - "**.ts"
-      - "**.tsx"
-      - "backend/**"
       - "src/**"
+      - "backend/**"
       - "py_modules/**"
       - "plugin.json"
       - "package.json"
@@ -18,15 +16,18 @@ jobs:
 
     steps:
 
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Install dependencies (Decky CLI requirements)
+      - name: Install required utilities (NO docker)
         run: |
           sudo apt-get update
-          sudo apt-get install -y wget unzip docker.io python3 python3-pip build-essential
+          sudo apt-get install -y wget unzip python3 python3-pip build-essential
+
+      - name: Verify Docker exists (GitHub runner has it preinstalled)
+        run: docker --version
 
       - name: Install Decky CLI
         run: |
@@ -39,19 +40,19 @@ jobs:
           echo "Building plugin with Decky CLI..."
           sudo cli/decky plugin build .
 
-      - name: Find plugin zip
+      - name: Find plugin.zip output
         id: zipfile
         run: |
-          ZIP_PATH=$(find . -name "*.zip" | head -n 1)
-          echo "zip=$ZIP_PATH" >> $GITHUB_OUTPUT
+          ZIP=$(find . -name "*.zip" | head -n 1)
+          echo "zip=$ZIP" >> $GITHUB_OUTPUT
 
-      - name: Upload plugin.zip as artifact
+      - name: Upload plugin.zip artifact
         uses: actions/upload-artifact@v4
         with:
           name: plugin
           path: ${{ steps.zipfile.outputs.zip }}
 
-      - name: Read version + name
+      - name: Read plugin metadata
         id: meta
         run: |
           PLUGIN_NAME=$(jq -r '.name' plugin.json)
@@ -59,7 +60,7 @@ jobs:
           echo "name=$PLUGIN_NAME" >> $GITHUB_OUTPUT
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-      - name: Publish Release
+      - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.meta.outputs.version }}
