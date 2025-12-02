@@ -53,22 +53,22 @@ jobs:
 
       - name: Create plugin.zip
         run: |
-          cd build
-          zip -r plugin.zip .
-          mv plugin.zip ..
+          cd out
+          zip -r zipline-auto-uploader.zip .
+          mv zipline-auto-uploader.zip ..
           cd ..
 
       - name: Upload plugin.zip as workflow artifact
         uses: actions/upload-artifact@v4
         with:
-          name: plugin
-          path: plugin.zip
+          name: zipline-auto-uploader
+          path: zipline-auto-uploader.zip
 
       - name: Publish Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.meta.outputs.version }}
-          files: plugin.zip
+          files: zipline-auto-uploader.zip
           name: "${{ steps.meta.outputs.name }} v${{ steps.meta.outputs.version }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
