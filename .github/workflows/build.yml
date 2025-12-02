@@ -1,0 +1,83 @@
+name: Build and Package Decky Plugin
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - "src/**"
+      - "backend/**"
+      - "py_modules/**"
+      - "plugin.json"
+      - "package.json"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Read plugin metadata
+        id: meta
+        run: |
+          name=$(jq -r '.name' plugin.json)
+          slug=$(jq -r '.slug // empty' plugin.json)
+          version=$(jq -r '.version' plugin.json)
+
+          # Generate slug if not provided
+          if [ -z "$slug" ]; then
+            slug=$(echo "$name" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g')
+          fi
+
+          echo "name=$name" >> $GITHUB_OUTPUT
+          echo "slug=$slug" >> $GITHUB_OUTPUT
+          echo "version=$version" >> $GITHUB_OUTPUT
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install frontend dependencies
+        run: pnpm install
+
+      - name: Build frontend
+        run: pnpm run build
+
+      - name: Build backend (Docker)
+        run: |
+          cd backend
+          docker build -t decky-backend .
+          mkdir -p ../build/backend
+          docker create --name backend_temp decky-backend
+          docker cp backend_temp:/backend ../build/backend
+          docker rm backend_temp
+
+      - name: Create plugin.zip
+        run: |
+          cd build
+          zip -r plugin.zip .
+          mv plugin.zip ..
+          cd ..
+
+      - name: Upload plugin.zip as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: plugin
+          path: plugin.zip
+
+      - name: Publish Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.meta.outputs.version }}
+          files: plugin.zip
+          name: "${{ steps.meta.outputs.name }} v${{ steps.meta.outputs.version }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
