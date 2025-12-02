@@ -51,15 +51,6 @@ jobs:
       - name: Build frontend
         run: pnpm run build
 
-      - name: Build backend (Docker)
-        run: |
-          cd backend
-          docker build -t decky-backend .
-          mkdir -p ../build/backend
-          docker create --name backend_temp decky-backend
-          docker cp backend_temp:/backend ../build/backend
-          docker rm backend_temp
-
       - name: Create plugin.zip
         run: |
           cd build
