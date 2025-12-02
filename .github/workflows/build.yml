@@ -16,37 +16,36 @@ jobs:
 
     steps:
 
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Install required utilities (NO docker)
+      - name: Install required utilities (NO Docker install)
         run: |
           sudo apt-get update
-          sudo apt-get install -y wget unzip python3 python3-pip build-essential
+          sudo apt-get install -y python3 python3-pip build-essential unzip
 
-      - name: Verify Docker exists (GitHub runner has it preinstalled)
-        run: docker --version
-
-      - name: Install Decky CLI
+      - name: Install Decky CLI (new method)
         run: |
-          wget https://github.com/SteamDeckHomebrew/decky-cli/releases/latest/download/decky-cli.zip -O decky-cli.zip
-          unzip decky-cli.zip -d cli
-          chmod +x cli/decky
+          pip install --upgrade pip
+          pip install decky-cli
 
-      - name: Run Decky CLI Build
+      - name: Verify decky is installed
+        run: decky --version
+
+      - name: Run Decky Plugin Build
         run: |
-          echo "Building plugin with Decky CLI..."
-          sudo cli/decky plugin build .
+          echo "Building plugin using Decky CLI..."
+          decky plugin build .
 
-      - name: Find plugin.zip output
+      - name: Find plugin zip
         id: zipfile
         run: |
           ZIP=$(find . -name "*.zip" | head -n 1)
           echo "zip=$ZIP" >> $GITHUB_OUTPUT
 
-      - name: Upload plugin.zip artifact
+      - name: Upload plugin.zip
         uses: actions/upload-artifact@v4
         with:
           name: plugin
