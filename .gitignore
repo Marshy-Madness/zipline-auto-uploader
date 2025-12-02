@@ -66,6 +66,7 @@ out/
 
 # Steam Deck runtime folders
 nodejs-bin/
+nodejs-bin/nodejs-lts-bin
 python/
 python-bin/
 
