@@ -2,7 +2,7 @@
   "name": "zipline-uploader",
   "display_name": "Zipline Uploader",
   "author": "MarshyMadness",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Automatically uploads screenshots and videos to Zipline.",
   "target": "main.py",
   "frontend": "dist/index.js",
